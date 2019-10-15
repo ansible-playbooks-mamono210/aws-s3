@@ -1,0 +1,30 @@
+- hosts: all
+  become: True
+
+  vars:
+    pip_install_packages:
+      - name: pip
+        state: latest
+      - name: boto3
+
+  roles:
+    - role: geerlingguy.repo-epel
+    - role: geerlingguy.pip
+
+  tasks:
+    - name: Create working directory
+      file:
+        path: '{{ working_dir }}'
+        state: directory
+        mode: '0755'
+        recurse: yes
+
+    - name: Simple GET operation
+      aws_s3:
+        aws_access_key: '{{ aws_access_key_id }}'
+        aws_secret_key: '{{ aws_secret_access_key }}'
+        region: '{{ aws_region }}'
+        bucket: '{{ s3_bucket }}'
+        object: '{{ s3_object_name }}'
+        dest: "{{ working_dir }}/{{ local_file_name }}"
+        mode: get
