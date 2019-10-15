@@ -1,9 +1,6 @@
 - hosts: all
   become: True
 
-  vars_files:
-    - vars/put.yml
-
   vars:
     pip_install_packages:
       - name: pip
@@ -11,6 +8,7 @@
       - name: boto3
 
   roles:
+    - role: geerlingguy.repo-epel
     - role: geerlingguy.pip
 
   tasks:
