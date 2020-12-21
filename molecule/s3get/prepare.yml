@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+
+  tasks:
+    - name: Simple PUT operation
+      aws_s3:
+        aws_access_key: '{{ item.aws_access_key_id }}'
+        aws_secret_key: '{{ item.aws_secret_access_key }}'
+        region: '{{ item.aws_region }}'
+        bucket: '{{ item.s3_bucket }}'
+        object: '{{ item.s3_object_name }}'
+        src: '{{ item.upload_file_path }}'
+        mode: put
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index

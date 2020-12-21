@@ -1,0 +1,5 @@
+wheel
+docker
+molecule[ansible]
+molecule-docker
+boto3

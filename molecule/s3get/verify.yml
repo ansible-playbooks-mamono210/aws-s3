@@ -1,0 +1,51 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create working directory
+      file:
+        path: '{{ item.working_dir }}'
+        state: directory
+        mode: '0755'
+        recurse: true
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
+    - name: Retrive test text file from AWS S3
+      aws_s3:
+        aws_access_key: '{{ item.aws_access_key_id }}'
+        aws_secret_key: '{{ item.aws_secret_access_key }}'
+        region: '{{ item.aws_region }}'
+        bucket: '{{ item.s3_bucket }}'
+        object: '{{ item.s3_object_name }}'
+        dest: "{{ item.working_dir }}/{{ item.local_file_name }}"
+        mode: get
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
+    - name: Register test strings
+      command: "cat {{ item.working_dir }}/{{ item.local_file_name }}"
+      register: TEST_STRINGS
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
+    - name: Regsiter assertion strings
+      command: "echo {{ item.test_string }}"
+      register: ASSERTION_STRINGS
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
+    - name: Assert
+      assert:
+        that:
+          - ASSERTION_STRINGS.results[0].stdout_lines == TEST_STRINGS.results[0].stdout_lines

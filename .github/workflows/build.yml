@@ -1,0 +1,103 @@
+---
+name: build
+on: [deployment, push]
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install ansible-lint
+        run: |
+          pip install ansible-lint
+
+      - name: Execulte ansible-lint
+        run: |
+          ansible-lint
+
+      - name: Show ansible-lint version
+        run: |
+          ansible-lint --version
+
+      - name: Show Ansible version
+        run: |
+          ansible --version
+
+  molecule:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - centos7
+        python-version:
+          - 3.9
+        scenario:
+          - s3get
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: python3 -m pip install -r molecule/requirements.txt
+
+      - name: Create galaxy dependencies file in 'molecule/default/'
+        run: cp roles/requirements.yml molecule/${{ matrix.scenario }}/requirements.yml
+
+      - name: Create test file
+        run: |
+          TIMESTAMP=$(date "+%s")
+          echo ${TIMESTAMP} > /tmp/${TIMESTAMP}.txt
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+          ls -al
+          echo ${TIMESTAMP}
+
+      - name: Test with molecule
+        run: |
+          molecule test --scenario-name ${{ matrix.scenario }}
+        env:
+          ANSIBLE_FORCE_COLOR: '1'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET_NAME }}
+          PY_COLORS: '1'
+          # TIMESTAMP: sotred in system environment variables
+
+      - name: Show molecule version
+        run: |
+          molecule --version
+
+      - name: Show Ansible version
+        run: |
+          ansible --version
+
+  trailing-whitespace:
+    name: Find Trailing Whitespace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: harupy/find-trailing-whitespace@56310d7
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Execute yamllint
+        run: yamllint *
+
+      - name: Show yamllint version
+        run: yamllint --version
