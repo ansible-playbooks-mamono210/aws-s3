@@ -3,7 +3,7 @@
 
   tasks:
     - name: Simple PUT operation
-      aws_s3:
+      amazon.aws.aws_s3:
         aws_access_key: '{{ item.aws_access_key_id }}'
         aws_secret_key: '{{ item.aws_secret_access_key }}'
         region: '{{ item.aws_region }}'

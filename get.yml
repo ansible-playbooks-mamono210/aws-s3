@@ -14,14 +14,14 @@
 
   tasks:
     - name: Create working directory
-      file:
+      ansible.builtin.file:
         path: '{{ working_dir }}'
         state: directory
         mode: '0755'
         recurse: true
 
     - name: Simple GET operation
-      aws_s3:
+      amazon.aws.aws_s3:
         aws_access_key: '{{ aws_access_key_id }}'
         aws_secret_key: '{{ aws_secret_access_key }}'
         region: '{{ aws_region }}'
