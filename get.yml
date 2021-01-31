@@ -5,7 +5,7 @@
   vars:
     pip_install_packages:
       - name: pip
-        state: latest
+        version: "20.3.4"
       - name: boto3
 
   roles:
