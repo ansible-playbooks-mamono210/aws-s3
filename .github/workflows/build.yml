@@ -28,6 +28,7 @@ jobs:
 
       - name: Show Ansible version
         run: |
+          pip list | grep ansible
           ansible --version
 
   molecule:
@@ -76,13 +77,14 @@ jobs:
           PY_COLORS: '1'
           # TIMESTAMP: sotred in system environment variables
 
+      - name: Show Ansible version
+        run: |
+          pip list | grep ansible
+          ansible --version
+
       - name: Show molecule version
         run: |
           molecule --version
-
-      - name: Show Ansible version
-        run: |
-          ansible --version
 
   trailing-whitespace:
     name: Find Trailing Whitespace
