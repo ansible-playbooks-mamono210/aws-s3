@@ -91,6 +91,8 @@ jobs:
       - name: Show molecule version
         run: |
           molecule --version
+        env:
+          PY_COLORS: '1'
 
   trailing-whitespace:
     name: Find Trailing Whitespace
