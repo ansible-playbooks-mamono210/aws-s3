@@ -1,0 +1,47 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance
+    image: ghcr.io/docker-hub-tm/ansible-test/${MOLECULE_DISTRO:-centos7}:latest
+    pre_build_image: true
+    aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+    aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    aws_region: ${AWS_REGION}
+    local_file_name: ${TIMESTAMP}.txt
+    s3_bucket: ${AWS_S3_BUCKET}
+    s3_object_name: /molecule-test/${TIMESTAMP}
+    test_string: "${TIMESTAMP}"
+    timestamp: ${TIMESTAMP}
+    upload_file_path: /tmp/${TIMESTAMP}.txt
+    working_dir: /tmp/s3
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callback_whitelist: ansible.posix.profile_tasks
+  connection_options:
+    aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+    aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    aws_region: ${AWS_REGION}
+    local_file_name: ${TIMESTAMP}.txt
+    pip_executable: pip
+    pip_package: python-pip
+    s3_bucket: ${AWS_S3_BUCKET}
+    s3_object_name: /molecule-test/${TIMESTAMP}
+    upload_file_path: /tmp/${TIMESTAMP}.txt
+  log: true
+  playbooks:
+    converge: ../../put.yml
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify

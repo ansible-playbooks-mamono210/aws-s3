@@ -1,0 +1,16 @@
+---
+- name: Prepare
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  roles:
+    - role: robertdebock.bootstrap
+
+  tasks:
+    - name: Create test file
+      ansible.builtin.shell:
+        echo {{ item.timestamp }} > /tmp/{{ item.local_file_name }}
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index

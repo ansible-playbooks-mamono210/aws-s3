@@ -1,3 +1,5 @@
 ---
-- geerlingguy.repo-epel
-- geerlingguy.pip
+roles:
+  - name: geerlingguy.repo-epel
+  - name: geerlingguy.pip
+  - name: robertdebock.bootstrap
