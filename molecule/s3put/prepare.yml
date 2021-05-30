@@ -14,3 +14,5 @@
       loop: "{{ molecule_yml.platforms }}"
       loop_control:
         index_var: index
+      changed_when: false
+      failed_when: false
