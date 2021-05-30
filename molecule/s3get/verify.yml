@@ -29,7 +29,7 @@
 
     - name: Register test strings
       ansible.builtin.command: "cat {{ item.working_dir }}/{{ item.local_file_name }}"
-      register: TEST_STRINGS
+      register: test_strings
       ignore_errors: yes
       changed_when: false
       loop: "{{ molecule_yml.platforms }}"
@@ -38,7 +38,7 @@
 
     - name: Regsiter assertion strings
       ansible.builtin.command: "echo {{ item.test_string }}"
-      register: ASSERTION_STRINGS
+      register: assertion_strings
       ignore_errors: yes
       changed_when: false
       loop: "{{ molecule_yml.platforms }}"
@@ -48,4 +48,4 @@
     - name: Assert
       ansible.builtin.assert:
         that:
-          - ASSERTION_STRINGS.results[0].stdout_lines == TEST_STRINGS.results[0].stdout_lines
+          - assertion_strings.results[0].stdout_lines == test_strings.results[0].stdout_lines

@@ -5,3 +5,4 @@ exclude_paths:
 parseable: true
 skip_list:
   - '106'
+  - 'no-changed-when'
