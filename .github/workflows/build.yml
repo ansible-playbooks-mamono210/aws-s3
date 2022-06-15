@@ -3,6 +3,9 @@ name: build
 on: [deployment, push]
 
 jobs:
+  ansible-lint:
+    uses: github-actions-reusable-workflows/ansible-lint/.github/workflows/workflows.yml@main
+
   detect-secrets:
     runs-on: ubuntu-latest
     steps:
