@@ -2,15 +2,8 @@
 - hosts: all
   become: true
 
-  vars:
-    pip_install_packages:
-      - name: pip
-        version: "20.3.4"
-      - name: boto3
-
   roles:
-    - role: geerlingguy.repo-epel
-    - role: geerlingguy.pip
+    - role: mamono210.aws_s3_bootstrap
 
   tasks:
     - name: Create working directory
