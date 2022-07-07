@@ -5,6 +5,8 @@ roles:
     src: https://github.com/ansible-roles-mamono210/aws_s3_bootstrap.git
   - name: mamono210.aws_s3_cp
     src: https://github.com/ansible-roles-mamono210/aws_s3_cp.git
+  - name: mamono210.aws_s3_get
+    src: https://github.com/ansible-roles-mamono210/aws_s3_get.git
   - name: mamono210.epel
     src: https://github.com/ansible-roles-mamono210/epel.git
   - name: robertdebock.bootstrap

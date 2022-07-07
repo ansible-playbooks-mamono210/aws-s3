@@ -31,6 +31,9 @@ provisioner:
     s3_bucket: ${AWS_S3_BUCKET}
     s3_object_name: /molecule-test/${TIMESTAMP}
     upload_file_path: ${TIMESTAMP}.txt
+    remote_directory: '{{ working_dir }}'
+    remote_file_name: '{{ local_file_name }}'
+    working_dir: /tmp/s3
   log: true
   playbooks:
     converge: ../../get.yml

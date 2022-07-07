@@ -4,21 +4,4 @@
 
   roles:
     - role: mamono210.aws_s3_bootstrap
-
-  tasks:
-    - name: Create working directory
-      ansible.builtin.file:
-        path: '{{ working_dir }}'
-        state: directory
-        mode: '0755'
-        recurse: true
-
-    - name: Simple GET operation
-      amazon.aws.aws_s3:
-        aws_access_key: '{{ aws_access_key_id }}'
-        aws_secret_key: '{{ aws_secret_access_key }}'
-        region: '{{ aws_region }}'
-        bucket: '{{ s3_bucket }}'
-        object: '{{ s3_object_name }}'
-        dest: "{{ working_dir }}/{{ local_file_name }}"
-        mode: get
+    - role: mamono210.aws_s3_get
