@@ -1,5 +1,7 @@
 wheel
 docker
-molecule[ansible]
+ansible
+molecule
 molecule-docker
+boto
 boto3
