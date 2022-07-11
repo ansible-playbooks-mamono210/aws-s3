@@ -69,10 +69,9 @@ jobs:
       - name: Create galaxy dependencies file in 'molecule/default/'
         run: cp roles/requirements.yml molecule/${{ matrix.scenario }}/requirements.yml
 
-      - name: Create test file
+      - name: Set environment variable with timestamp for making sure Molecule would create unique AWS resources
         run: |
           TIMESTAMP=$(date "+%s")
-          echo ${TIMESTAMP} > /tmp/${TIMESTAMP}.txt
           echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
 
       - name: Test with molecule

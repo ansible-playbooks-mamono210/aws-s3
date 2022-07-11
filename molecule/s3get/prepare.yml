@@ -2,6 +2,28 @@
 - hosts: localhost
 
   tasks:
+    - name: Create directory for creating test text file
+      ansible.builtin.file:
+        path: '{{ item.working_dir }}'
+        state: directory
+        mode: '0777'
+        owner: '{{ item.local_file_owner }}'
+        group: '{{ item.local_file_group }}'
+      delegate_to: localhost
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
+    - name: Create test text file
+      ansible.builtin.copy:
+        dest: "{{ item.working_dir }}/{{ item.local_file_name }}"
+        content: |
+          {{ item.test_string }}
+      delegate_to: localhost
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+
     - name: Simple PUT operation
       amazon.aws.aws_s3:
         aws_access_key: '{{ item.aws_access_key_id }}'
@@ -9,7 +31,7 @@
         region: '{{ item.aws_region }}'
         bucket: '{{ item.s3_bucket }}'
         object: '{{ item.s3_object_name }}'
-        src: '{{ item.upload_file_path }}'
+        src: "{{ item.working_dir }}/{{ item.local_file_name }}"
         mode: put
       loop: "{{ molecule_yml.platforms }}"
       loop_control:
