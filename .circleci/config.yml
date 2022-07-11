@@ -1,0 +1,176 @@
+---
+version: 2.1
+
+executors:
+  ansible-lint:
+    docker:
+      - image: ghcr.io/docker-hub-tm/circleci-executors/ansible-lint:latest
+    resource_class: small
+  molecule:
+    machine:
+      image: ubuntu-2004:202111-02
+    resource_class: medium
+  yamllint:
+    docker:
+      - image: ghcr.io/docker-hub-tm/circleci-executors/yamllint:latest
+    resource_class: small
+  trailing-whitespace:
+    docker:
+      - image: ghcr.io/docker-hub-tm/circleci-executors/trailing-whitespace:latest
+    resource_class: small
+
+orbs:
+  aws-cli: circleci/aws-cli@3.1.1
+
+jobs:
+  ansible-lint:
+    executor: ansible-lint
+    steps:
+      - checkout
+      - run:
+          name: Install the role
+          command: |
+            ansible-galaxy install -r roles/requirements.yml
+      - run:
+          name: Execulte Ansible-lint
+          command: ansible-lint
+      - run:
+          name: Show Ansible-lint version
+          command: |
+            pip list | grep ansible \
+            | GREP_COLORS='mt=01;34' egrep --color=always '[[:digit:]]' \
+            | GREP_COLORS='mt=01;34' egrep --color=always '\.' \
+            | GREP_COLORS='mt=01;33' egrep --color=always 'ansible.* '
+            ansible-lint --version
+  molecule:
+    executor: molecule
+    parameters:
+      checkout-path:
+        type: string
+      molecule-executor-image:
+        type: string
+      molecule-scenario-name:
+        type: string
+      molecule-test-image:
+        type: string
+    steps:
+      - checkout:
+          path: << parameters.checkout-path >>
+      - aws-cli/setup:
+          profile-name: default
+          role-arn: ${AWS_ROLE_ARN}
+          role-session-name: circleci_ansible-playbook_aws-s3_<< parameters.molecule-scenario-name >>
+          session-duration: '900'
+      - run:
+          name: Set AWS credentials to CircleCI environment variables
+          command: |
+            AWS_ACCESS_KEY_ID=`cat ~/.aws/credentials | grep aws_access_key_id | awk '{print $3}'`
+            AWS_REGION=`cat ~/.aws/config | grep region | awk '{print $3}'`
+            AWS_SECRET_ACCESS_KEY=`cat ~/.aws/credentials | grep aws_secret_access_key | awk '{print $3}'`
+            AWS_SESSION_TOKEN=`cat ~/.aws/credentials | grep aws_session_token | awk '{print $3}'`
+            echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $BASH_ENV
+            echo "AWS_REGION=${AWS_REGION}" >> $BASH_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $BASH_ENV
+            echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Set environment variable with timestamp for making sure Molecule would create unique AWS resources
+          command: |
+            TIMESTAMP=$(date "+%s")
+            echo "export TIMESTAMP=$TIMESTAMP" >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Test with Molecule
+          command: |
+            sudo chmod 666 /var/run/docker.sock
+
+            cd << parameters.checkout-path >>
+
+            docker run --rm -it \
+            -e ANSIBLE_FORCE_COLOR=1 \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_REGION=${AWS_REGION} \
+            -e AWS_S3_BUCKET=${AWS_S3_TEST_BUCKET_NAME} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e MOLECULE_VERBOSITY=0 \
+            -e MOLECULE_NO_LOG=True \
+            -e PROFILE_TASKS_SORT_ORDER=none \
+            -e PROFILE_TASKS_TASK_OUTPUT_LIMIT=200 \
+            -e PY_COLORS=1 \
+            -e TIMESTAMP=${TIMESTAMP} \
+            -e TZ='Asia/Tokyo' \
+            -v /etc/group:/etc/group:ro \
+            -v /etc/passwd:/etc/passwd:ro \
+            -v "$(pwd)":/tmp/$(basename "${PWD}"):ro \
+            -v $HOME/tmp:$HOME/tmp \
+            -v /usr/bin/docker:/usr/bin/docker \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v /tmp:/tmp \
+            -w /tmp/$(basename "${PWD}") \
+            << parameters.molecule-executor-image >> \
+            molecule test --scenario-name << parameters.molecule-scenario-name >>
+      - run:
+          name: Show Ansible version
+          command: |
+            docker run --rm -it \
+            << parameters.molecule-executor-image >> \
+            ansible --version \
+            | GREP_COLORS='mt=01;34' egrep --color=always '[[:digit:]]' \
+            | GREP_COLORS='mt=01;34' egrep --color=always '\.' \
+            | GREP_COLORS='mt=01;33' egrep --color=always 'ansible.* '
+      - run:
+          name: Show Molecule version
+          command: |
+            docker run --rm -it \
+            << parameters.molecule-executor-image >> \
+            molecule --version
+  yamllint:
+    executor: yamllint
+    steps:
+      - checkout
+      - run:
+          name: Execute yamllint
+          command: yamllint *
+      - run:
+          name: Show yamllint version
+          command: |
+            yamllint --version \
+            | GREP_COLORS='mt=01;34' egrep --color=always '[[:digit:]]' \
+            | GREP_COLORS='mt=01;34' egrep --color=always '\.' \
+            | GREP_COLORS='mt=01;33' egrep --color=always 'yamllint.* '
+  trailing-whitespace:
+    executor: trailing-whitespace
+    steps:
+      - checkout
+      - run:
+          name: Execute trailing-whitespace
+          command: trailing-whitespace
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - trailing-whitespace
+      - yamllint:
+          requires:
+            - trailing-whitespace
+      - ansible-lint:
+          requires:
+            - yamllint
+      - molecule:
+          context: AWS_OPENID_CONNECT_TOKENS
+          matrix:
+            parameters:
+              checkout-path:
+                - 'aws-s3'
+              molecule-executor-image:
+                - 'ghcr.io/docker-hub-tm/circleci-executors_molecule/molecule:docker'
+              molecule-scenario-name:
+                - 's3get'
+                - 's3put'
+              molecule-test-image:
+                - 'ghcr.io/docker-hub-tm/ansible-test/centos-stream8:latest'
+                - 'ghcr.io/docker-hub-tm/ansible-test/centos7:latest'
+          requires:
+            - ansible-lint
