@@ -16,14 +16,14 @@
 
     - name: Retrieve test text file from AWS S3
       amazon.aws.aws_s3:
-        aws_access_key: '{{ item.aws_access_key_id }}'
-        aws_secret_key: '{{ item.aws_secret_access_key }}'
-        security_token: '{{ item.aws_session_token }}'
-        region: '{{ item.aws_region }}'
         bucket: '{{ item.s3_bucket }}'
         object: '{{ item.s3_object_name }}'
         dest: "{{ item.working_dir }}/{{ item.local_file_name }}"
         mode: get
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+        AWS_SESSION_TOKEN: "{{ lookup('env', 'AWS_SESSION_TOKEN') }}"
       loop: "{{ molecule_yml.platforms }}"
       loop_control:
         index_var: index

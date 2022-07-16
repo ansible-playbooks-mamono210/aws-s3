@@ -26,9 +26,6 @@
 
     - name: Simple PUT operation
       amazon.aws.aws_s3:
-        aws_access_key: '{{ item.aws_access_key_id }}'
-        aws_secret_key: '{{ item.aws_secret_access_key }}'
-        region: '{{ item.aws_region }}'
         bucket: '{{ item.s3_bucket }}'
         object: '{{ item.s3_object_name }}'
         src: "{{ item.working_dir }}/{{ item.local_file_name }}"
