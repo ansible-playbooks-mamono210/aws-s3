@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Prepare
+  hosts: localhost
 
   tasks:
     - name: Create directory for creating test text file
