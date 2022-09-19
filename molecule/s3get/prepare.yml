@@ -16,10 +16,12 @@
         index_var: index
 
     - name: Create test text file
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: source.template
         dest: "{{ item.working_dir }}/{{ item.local_file_name }}"
-        content: |
-          {{ item.test_string }}
+        mode: '0777'
+        owner: '{{ item.local_file_owner }}'
+        group: '{{ item.local_file_group }}'
       delegate_to: localhost
       loop: "{{ molecule_yml.platforms }}"
       loop_control:
