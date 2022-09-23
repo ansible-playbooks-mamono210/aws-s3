@@ -21,8 +21,6 @@ provisioner:
       callbacks_enabled: ansible.posix.profile_tasks
   connection_options:
     local_file_name: ${TIMESTAMP}.txt
-    pip_executable: pip
-    pip_package: python-pip
     s3_bucket: ${AWS_S3_BUCKET}
     s3_object_name: /molecule-test/${TIMESTAMP}
     upload_file_path: /tmp/${TIMESTAMP}.txt
