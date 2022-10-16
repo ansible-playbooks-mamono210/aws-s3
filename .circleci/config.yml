@@ -4,7 +4,7 @@ version: 2.1
 executors:
   ansible-lint:
     docker:
-      - image: ghcr.io/docker-hub-tm/circleci-executors/ansible-lint:latest
+      - image: ghcr.io/docker-images-mamono210/circleci-executors/ansible-lint:latest
     resource_class: small
   molecule:
     machine:
@@ -12,11 +12,11 @@ executors:
     resource_class: medium
   yamllint:
     docker:
-      - image: ghcr.io/docker-hub-tm/circleci-executors/yamllint:latest
+      - image: ghcr.io/docker-images-mamono210/circleci-executors/yamllint:latest
     resource_class: small
   trailing-whitespace:
     docker:
-      - image: ghcr.io/docker-hub-tm/circleci-executors/trailing-whitespace:latest
+      - image: ghcr.io/docker-images-mamono210/circleci-executors/trailing-whitespace:latest
     resource_class: small
 
 orbs:
@@ -165,12 +165,12 @@ workflows:
               checkout-path:
                 - 'aws-s3'
               molecule-executor-image:
-                - 'ghcr.io/docker-hub-tm/circleci-executors_molecule/molecule:docker'
+                - 'ghcr.io/docker-images-mamono210/circleci-executors_molecule/molecule:docker'
               molecule-scenario-name:
                 - 's3get'
                 - 's3put'
               molecule-test-image:
-                - 'ghcr.io/docker-hub-tm/ansible-test/centos-stream8:latest'
-                - 'ghcr.io/docker-hub-tm/ansible-test/centos7:latest'
+                - 'ghcr.io/docker-images-mamono210/ansible-test/centos-stream8:latest'
+                - 'ghcr.io/docker-images-mamono210/ansible-test/centos7:latest'
           requires:
             - ansible-lint
