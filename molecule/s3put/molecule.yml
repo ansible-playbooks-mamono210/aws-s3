@@ -5,7 +5,7 @@ driver:
   name: docker
 platforms:
   - name: instance
-    image: ghcr.io/docker-images-mamono210/ansible-test/${MOLECULE_DISTRO:-centos7}:latest
+    image: ${MOLECULE_IMAGE}
     pre_build_image: true
     local_file_name: ${TIMESTAMP}.txt
     s3_bucket: ${AWS_S3_BUCKET}

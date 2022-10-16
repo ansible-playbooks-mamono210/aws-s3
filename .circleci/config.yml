@@ -93,6 +93,7 @@ jobs:
             -e AWS_S3_BUCKET=${AWS_S3_TEST_BUCKET_NAME} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e MOLECULE_IMAGE=<< parameters.molecule-test-image >> \
             -e MOLECULE_VERBOSITY=0 \
             -e MOLECULE_NO_LOG=True \
             -e PROFILE_TASKS_SORT_ORDER=none \
