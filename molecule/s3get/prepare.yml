@@ -28,7 +28,7 @@
         index_var: index
 
     - name: Simple PUT operation
-      amazon.aws.aws_s3:
+      amazon.aws.s3_object:
         bucket: '{{ item.s3_bucket }}'
         object: '{{ item.s3_object_name }}'
         src: "{{ item.working_dir }}/{{ item.local_file_name }}"
