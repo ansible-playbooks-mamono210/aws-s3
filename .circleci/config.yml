@@ -62,18 +62,6 @@ jobs:
           role-session-name: circleci_ansible-playbook_aws-s3_<< parameters.molecule-scenario-name >>
           session-duration: '900'
       - run:
-          name: Set AWS credentials to CircleCI environment variables
-          command: |
-            AWS_ACCESS_KEY_ID=`cat ~/.aws/credentials | grep aws_access_key_id | awk '{print $3}'`
-            AWS_REGION=`cat ~/.aws/config | grep region | awk '{print $3}'`
-            AWS_SECRET_ACCESS_KEY=`cat ~/.aws/credentials | grep aws_secret_access_key | awk '{print $3}'`
-            AWS_SESSION_TOKEN=`cat ~/.aws/credentials | grep aws_session_token | awk '{print $3}'`
-            echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $BASH_ENV
-            echo "AWS_REGION=${AWS_REGION}" >> $BASH_ENV
-            echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $BASH_ENV
-            echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $BASH_ENV
-            source $BASH_ENV
-      - run:
           name: Set environment variable with timestamp for making sure Molecule would create unique AWS resources
           command: |
             TIMESTAMP=$(date "+%s")
