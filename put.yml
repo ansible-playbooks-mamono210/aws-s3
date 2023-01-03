@@ -3,5 +3,5 @@
   become: true
 
   roles:
-    - role: mamono210.aws_s3_bootstrap
+    - role: mamono210.aws_bootstrap
     - role: mamono210.aws_s3_cp

@@ -1,8 +1,8 @@
 ---
 roles:
   - name: geerlingguy.pip
-  - name: mamono210.aws_s3_bootstrap
-    src: https://github.com/ansible-roles-mamono210/aws_s3_bootstrap.git
+  - name: mamono210.aws_bootstrap
+    src: https://github.com/ansible-roles-mamono210/aws_bootstrap.git
   - name: mamono210.aws_s3_cp
     src: https://github.com/ansible-roles-mamono210/aws_s3_cp.git
   - name: mamono210.aws_s3_get
