@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Get data from S3 to the remote system
+  hosts: all
   become: true
 
   roles:
