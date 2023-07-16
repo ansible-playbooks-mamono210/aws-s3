@@ -126,7 +126,7 @@ workflows:
               checkout-path:
                 - 'aws-s3'
               molecule-executor-image:
-                - 'ghcr.io/docker-images-mamono210/circleci-executors_molecule/molecule:docker'
+                - 'ghcr.io/docker-images-mamono210/circleci-executors/molecule-docker:latest'
               molecule-scenario-name:
                 - 's3get'
                 - 's3put'
