@@ -1,1 +1,5 @@
 working_dir: /tmp/s3
+remote_directory:
+remote_file_name:
+s3_bucket:
+s3_object_name:
