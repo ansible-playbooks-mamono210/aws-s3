@@ -2,28 +2,52 @@
 dependency:
   name: galaxy
 driver:
-  name: docker
+  name: default
 platforms:
-  - name: instance
-    image: ${MOLECULE_IMAGE}
-    pre_build_image: true
-    local_file_name: ${TIMESTAMP}.txt
-    s3_bucket: ${AWS_S3_BUCKET}
-    s3_object_name: /ansible-playbooks-mamono210/aws-s3/put/${TIMESTAMP}
-    test_string: "${TIMESTAMP}"
-    timestamp: ${TIMESTAMP}
-    upload_file_path: /tmp/${TIMESTAMP}.txt
-    working_dir: /tmp/s3
+  - name: ${PLATFORM_NAME}
+    image: ${AMI_ID}
+    instance_type: ${INSTANCE_TYPE}
+    keypair_name: ${KEYPAIR_NAME}
+    security_group_name: ${SECURITY_GROUP_NAME}
+    security_group_rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: '0.0.0.0/0'
+    security_group_rules_egress:
+      - proto: -1
+        from_port: 0
+        to_port: 0
+        cidr_ip: '0.0.0.0/0'
+    ssh_port: 22
+    ssh_user: ${ANSIBLE_USER}
+    tag_name: ${TAG_NAME}
+    tag_created_by: ${CREATED_BY}
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          delete_on_termination: yes
+          volume_type: 'gp3'
+    vpc_subnet_id: ${VPC_SUBNET_ID}
+    ansible_user: ${ANSIBLE_USER}
+    local_file_name: ${UNIX_TIMESTAMP}.txt
+    s3_bucket: mamono210
+    s3_object_name: /ansible-roles-mamono210/aws-s3/put/${UNIX_TIMESTAMP}.txt
+    test_string: ${UNIX_TIMESTAMP}
+    working_dir: /home/${ANSIBLE_USER}/test_file
 provisioner:
   name: ansible
   config_options:
     defaults:
-      callbacks_enabled: ansible.posix.profile_tasks
+      callback_enabled: ansible.posix.profile_tasks
   connection_options:
-    local_file_name: ${TIMESTAMP}.txt
-    s3_bucket: ${AWS_S3_BUCKET}
-    s3_object_name: /ansible-playbooks-mamono210/aws-s3/put/${TIMESTAMP}
-    upload_file_path: /tmp/${TIMESTAMP}.txt
+    ansible_user: ${ANSIBLE_USER}
+    profile: default
+    local_file_name: ${UNIX_TIMESTAMP}.txt
+    s3_bucket: mamono210
+    s3_object_name: /ansible-roles-mamono210/aws-s3/put/${UNIX_TIMESTAMP}.txt
+    upload_file_path: "{{ working_dir }}/{{ local_file_name }}"
+    working_dir: "/home/{{ ansible_user }}/test_file"
   log: true
   playbooks:
     converge: ../../put.yml
@@ -36,4 +60,6 @@ scenario:
     - create
     - prepare
     - converge
+    - idempotence
     - verify
+    - destroy

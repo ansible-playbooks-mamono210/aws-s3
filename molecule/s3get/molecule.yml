@@ -2,33 +2,54 @@
 dependency:
   name: galaxy
 driver:
-  name: docker
+  name: default
 platforms:
-  - name: instance
-    image: ${MOLECULE_IMAGE}
-    pre_build_image: true
+  - name: ${PLATFORM_NAME}
+    image: ${AMI_ID}
+    instance_type: ${INSTANCE_TYPE}
+    keypair_name: ${KEYPAIR_NAME}
+    security_group_name: ${SECURITY_GROUP_NAME}
+    security_group_rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: '0.0.0.0/0'
+    security_group_rules_egress:
+      - proto: -1
+        from_port: 0
+        to_port: 0
+        cidr_ip: '0.0.0.0/0'
+    ssh_port: 22
+    ssh_user: ${ANSIBLE_USER}
+    tag_name: ${TAG_NAME}
+    tag_created_by: ${CREATED_BY}
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          delete_on_termination: yes
+          volume_type: 'gp3'
+    vpc_subnet_id: ${VPC_SUBNET_ID}
     aws_region: ${AWS_REGION}
     local_file_group: circleci
-    local_file_name: ${TIMESTAMP}.txt
+    local_file_name: ${UNIX_TIMESTAMP}.txt
     local_file_owner: circleci
-    s3_bucket: ${AWS_S3_BUCKET}
-    s3_object_name: /ansible-playbooks-mamono210/aws-s3/get/${TIMESTAMP}
-    test_string: ${TIMESTAMP}
+    s3_bucket: mamono210
+    s3_object_name: /ansible-playbooks-mamono210/aws-s3/get/${UNIX_TIMESTAMP}.txt
+    test_string: ${UNIX_TIMESTAMP}
     upload_file_path: "{{ working_dir }}/{{ local_file_name }}"
     working_dir: '/home/circleci/test_file'
 provisioner:
   name: ansible
   config_options:
     defaults:
-      callbacks_enabled: ansible.posix.profile_tasks
+      callback_enabled: ansible.posix.profile_tasks
   connection_options:
-    local_file_name: ${TIMESTAMP}.txt
-    s3_bucket: ${AWS_S3_BUCKET}
-    s3_object_name: /ansible-playbooks-mamono210/aws-s3/get/${TIMESTAMP}
-    upload_file_path: "{{ working_dir }}/{{ local_file_name }}"
-    remote_directory: '{{ working_dir }}'
-    remote_file_name: '{{ local_file_name }}'
-    working_dir: '/home/circleci/test_file'
+    ansible_user: ${ANSIBLE_USER}
+    profile: default
+    remote_directory: /tmp/s3
+    remote_file_name: ${UNIX_TIMESTAMP}.txt
+    s3_bucket: mamono210
+    s3_object_name: /ansible-playbooks-mamono210/aws-s3/get/${UNIX_TIMESTAMP}.txt
   log: true
   playbooks:
     converge: ../../get.yml
@@ -42,3 +63,4 @@ scenario:
     - prepare
     - converge
     - verify
+    - destroy

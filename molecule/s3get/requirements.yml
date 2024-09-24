@@ -1,0 +1,14 @@
+---
+roles:
+  - name: geerlingguy.pip
+    version: 'master'
+  - name: mamono210.aws_bootstrap
+    src: https://github.com/ansible-roles-mamono210/aws_bootstrap.git
+  - name: mamono210.aws_s3_cp
+    src: https://github.com/ansible-roles-mamono210/aws_s3_cp.git
+  - name: mamono210.aws_s3_get
+    src: https://github.com/ansible-roles-mamono210/aws_s3_get.git
+  - name: mamono210.epel
+    src: https://github.com/ansible-roles-mamono210/epel.git
+  - name: mamono210.molecule_ec2_driver
+    src: https://github.com/ansible-roles-mamono210/molecule_ec2_driver.git
