@@ -97,7 +97,7 @@ workflows:
             - yamllint
       - molecule:
           ansible-user: 'ec2-user'
-          aws-ami-id: 'ami-0a0aa54caf414e700'
+          aws-ami-id: 'ami-010d54624dc38d3c7'
           aws-instance-type: 't2.medium'
           aws-resource-name: 'circleci_ansible-playbook_aws_s3_cs9'
           aws-session-duration: '3600'
@@ -109,7 +109,7 @@ workflows:
             - ansible-lint
       - molecule:
           ansible-user: 'ec2-user'
-          aws-ami-id: 'ami-0a0aa54caf414e700'
+          aws-ami-id: 'ami-010d54624dc38d3c7'
           aws-instance-type: 't2.medium'
           aws-resource-name: 'circleci_ansible-playbook_aws_s3_cs9'
           aws-session-duration: '3600'
