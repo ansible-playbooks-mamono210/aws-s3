@@ -3,6 +3,12 @@
   hosts: all
   become: true
 
-  roles:
-    - role: mamono210.aws_bootstrap
-    - role: mamono210.aws_s3_get
+  tasks:
+    - name: Run aws_bootstrap (unless skipped)
+      ansible.builtin.include_role:
+        name: mamono210.aws_bootstrap
+      when: not (skip_bootstrap | default(false) | bool)
+
+    - name: Run aws_s3_get
+      ansible.builtin.include_role:
+        name: mamono210.aws_s3_get

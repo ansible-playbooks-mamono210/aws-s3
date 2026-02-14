@@ -1,0 +1,3 @@
+---
+working_dir: /tmp/s3
+skip_bootstrap: false
