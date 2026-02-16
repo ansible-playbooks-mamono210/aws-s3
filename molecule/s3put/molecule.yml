@@ -46,6 +46,7 @@ provisioner:
     local_file_name: ${UNIX_TIMESTAMP}.txt
     s3_bucket: mamono210
     s3_object_name: /ansible-roles-mamono210/aws-s3/put/${UNIX_TIMESTAMP}.txt
+    skip_bootstrap: true
     upload_file_path: "{{ working_dir }}/{{ local_file_name }}"
     working_dir: "/home/{{ ansible_user }}/test_file"
   log: true
