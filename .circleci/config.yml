@@ -1,29 +1,78 @@
 ---
 version: 2.1
 
-executors:
-  trailing-whitespace:
-    docker:
-      - image: ghcr.io/docker-images-mamono210/circleci-executors/trailing-whitespace:latest
-    resource_class: small
-
 orbs:
   ansible-lint: orbss/ansible-lint@0.0.3
   aws-cli: circleci/aws-cli@3.1.1
   molecule-ec2: orbss/molecule-ec2@0.0.9
   yamllint: orbss/yamllint@0.0.4
+  trailing-whitespace: orbss/trailing-whitespace@0.0.2
+
+parameters:
+  ansible_lint_executor_image:
+    type: string
+    default: ghcr.io/docker-images-mamono210/circleci-executors/ansible-lint:26.1.1-py3.14
+  ansible_lint_executor_resource_class:
+    type: enum
+    enum: [small, medium, medium+, large]
+    default: small
+  molecule_ec2_executor_image:
+    type: string
+    default: ghcr.io/docker-images-mamono210/circleci-executors/molecule-default:25.12.0-py3.14
+  molecule_ec2_executor_resource_class:
+    type: enum
+    enum: [small, medium, medium+, large]
+    default: small
+  molecule_ansible_user:
+    type: string
+    default: ec2-user
+  molecule_aws_ami_id:
+    type: string
+    default: ami-010d54624dc38d3c7
+  molecule_aws_instance_type:
+    type: string
+    default: t2.medium
+  molecule_aws_session_duration:
+    type: string
+    default: "3600"
+  molecule_aws_vpc_subnet_id:
+    type: string
+    default: subnet-022a704b3061b8b39
+  molecule_circleci_timeout:
+    type: string
+    default: 40m
+  molecule_context:
+    type: string
+    default: AWS_OPENID_CONNECT_TOKENS
+  yamllint_executor_image:
+    type: string
+    default: ghcr.io/docker-images-mamono210/circleci-executors/yamllint:1.38.0-py3.14
+  yamllint_executor_resource_class:
+    type: enum
+    enum: [small, medium, medium+, large]
+    default: small
+  trailing_whitespace_executor_image:
+    type: string
+    default: ghcr.io/docker-images-mamono210/circleci-executors/trailing-whitespace:py3.14-20260210
+  trailing_whitespace_resource_class:
+    type: enum
+    enum: [small, medium, medium+, large]
+    default: small
 
 jobs:
   ansible-lint:
-    executor: ansible-lint/default
+    executor:
+      name: ansible-lint/default
+      image: << pipeline.parameters.ansible_lint_executor_image >>
+      resource_class: << pipeline.parameters.ansible_lint_executor_resource_class >>
     steps:
       - checkout
-      - ansible-lint/execute:
-          molecule-playbook-test: true
-  molecule:
-    machine:
-      image: ubuntu-2204:2023.10.1
-    resource_class: medium
+      - ansible-lint/execute
+  molecule-ec2:
+    executor:
+      name: molecule-ec2/default
+      image: << pipeline.parameters.molecule_ec2_executor_image >>
+      resource_class: << pipeline.parameters.molecule_ec2_executor_resource_class >>
     parameters:
       ansible-user:
         type: string
@@ -41,23 +90,16 @@ jobs:
         type: string
       molecule-scenario-name:
         type: string
-        default: default
     steps:
       - checkout
-      - aws-cli/setup
       - aws-cli/setup:
           profile-name: default
           role-arn: ${AWS_ROLE_ARN}
           role-session-name: << parameters.aws-resource-name >>
           session-duration: << parameters.aws-session-duration >>
       - run:
-          name: Install Molecule and dependencies
-          command: |
-            pip3 install -r molecule/requirements.txt
-      - run:
-          name: Install required Ansible roles
-          command: |
-            ansible-galaxy install -r molecule/<< parameters.molecule-scenario-name >>/requirements.yml
+          name: Install Ansible roles
+          command: ansible-galaxy install -r molecule/<< parameters.molecule-scenario-name >>/requirements.yml
       - run:
           name: Configure Molecule config file
           command: |
@@ -72,17 +114,21 @@ jobs:
           circleci-timeout: << parameters.circleci-timeout >>
           molecule-scenario-name: << parameters.molecule-scenario-name >>
   yamllint:
-    executor: yamllint/default
+    executor:
+      name: yamllint/default
+      image: << pipeline.parameters.yamllint_executor_image >>
+      resource_class: << pipeline.parameters.yamllint_executor_resource_class >>
     steps:
       - checkout
       - yamllint/execute
   trailing-whitespace:
-    executor: trailing-whitespace
+    executor:
+      name: trailing-whitespace/default
+      image: << pipeline.parameters.trailing_whitespace_executor_image >>
+      resource_class: << pipeline.parameters.trailing_whitespace_resource_class >>
     steps:
       - checkout
-      - run:
-          name: Execute trailing-whitespace
-          command: trailing-whitespace
+      - trailing-whitespace/execute
 
 workflows:
   version: 2.1
@@ -95,27 +141,27 @@ workflows:
       - ansible-lint:
           requires:
             - yamllint
-      - molecule:
-          ansible-user: 'ec2-user'
-          aws-ami-id: 'ami-010d54624dc38d3c7'
-          aws-instance-type: 't2.medium'
-          aws-resource-name: 'circleci_ansible-playbook_aws_s3_cs9_get'
-          aws-session-duration: '3600'
-          aws-vpc-subnet-id: 'subnet-022a704b3061b8b39'
-          circleci-timeout: '30m'
-          molecule-scenario-name: 's3get'
-          context: AWS_OPENID_CONNECT_TOKENS
+      - molecule-ec2:
+          ansible-user: << pipeline.parameters.molecule_ansible_user >>
+          aws-ami-id: << pipeline.parameters.molecule_aws_ami_id >>
+          aws-instance-type: << pipeline.parameters.molecule_aws_instance_type >>
+          aws-resource-name: circleci_ansible-playbook_aws_s3_cs9_get
+          aws-session-duration: << pipeline.parameters.molecule_aws_session_duration >>
+          aws-vpc-subnet-id: << pipeline.parameters.molecule_aws_vpc_subnet_id >>
+          circleci-timeout: << pipeline.parameters.molecule_circleci_timeout >>
+          molecule-scenario-name: s3get
+          context: << pipeline.parameters.molecule_context >>
           requires:
             - ansible-lint
-      - molecule:
-          ansible-user: 'ec2-user'
-          aws-ami-id: 'ami-010d54624dc38d3c7'
-          aws-instance-type: 't2.medium'
-          aws-resource-name: 'circleci_ansible-playbook_aws_s3_cs9_put'
-          aws-session-duration: '3600'
-          aws-vpc-subnet-id: 'subnet-022a704b3061b8b39'
-          circleci-timeout: '30m'
-          molecule-scenario-name: 's3put'
-          context: AWS_OPENID_CONNECT_TOKENS
+      - molecule-ec2:
+          ansible-user: << pipeline.parameters.molecule_ansible_user >>
+          aws-ami-id: << pipeline.parameters.molecule_aws_ami_id >>
+          aws-instance-type: << pipeline.parameters.molecule_aws_instance_type >>
+          aws-resource-name: circleci_ansible-playbook_aws_s3_cs9_put
+          aws-session-duration: << pipeline.parameters.molecule_aws_session_duration >>
+          aws-vpc-subnet-id: << pipeline.parameters.molecule_aws_vpc_subnet_id >>
+          circleci-timeout: << pipeline.parameters.molecule_circleci_timeout >>
+          molecule-scenario-name: s3put
+          context: << pipeline.parameters.molecule_context >>
           requires:
             - ansible-lint
